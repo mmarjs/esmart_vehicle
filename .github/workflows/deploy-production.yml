@@ -1,0 +1,56 @@
+name: Master Deployement
+
+on:
+  push:
+    branches:
+      - 'master'
+    paths-ignore:
+      - 'tests/**'
+      - 'unit/**'
+      - 'storedproc/**'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: "Checkout"
+        uses: actions/checkout@v1
+        with:
+          submodules: true
+          token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+
+      - name: "Copy env.yml file"
+        uses: ./.github/shared/actions/aws-cli
+        with:
+          cmd: 's3 cp s3://transtex-vault-production/esmart-client-app/.env .env'
+        env:
+          AWS_REGION: us-east-2
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+
+      - name: "Use Node.js 14.x"
+        uses: actions/setup-node@v1
+        with:
+          node-version: 14.x
+
+      - name: yarn install modules
+        run: yarn install
+
+      - name: npm install, deploy
+        run: |
+          yarn install
+          yarn global add serverless
+          SLS_DEBUG=* sls deploy --stage production
+        env:
+          AWS_REGION: us-east-1
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+
+      - name: clear s3/cloudfront cachec
+        uses: ./.github/shared/actions/aws-cli
+        with:
+          cmd: 'cloudfront create-invalidation --distribution-id ${{ secrets.CLOUD_DISTRIBUTION_ID_PROD }} --paths "/*"'
+        env:
+          AWS_REGION: us-east-2
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}

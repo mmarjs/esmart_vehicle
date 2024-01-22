@@ -1,0 +1,22 @@
+name: Syntax check
+
+on: [push]
+
+jobs:
+  syntax-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v1
+      - name: "Use Node.js 14.x"
+        uses: actions/setup-node@v1
+        with:
+          node-version: 14.x
+      - name: yarn install eslint for javascript checks
+        run: |
+          yarn add eslint
+          yarn install
+          npm run eslint
+      - name: Run stylelint for stylesheet linter
+        run: |
+          yarn add stylelint stylelint-config-prettier stylelint-config-standard stylelint-prettier
+          npm run stylelint:style

@@ -1,0 +1,21 @@
+name: Unit test		
+
+on: [push]		
+
+jobs:		
+  run-unit-test:		
+    runs-on: ubuntu-latest		
+    steps:		
+      - name: "Checkout"
+        uses: actions/checkout@v1
+        with:
+          submodules: true
+          token: ${{ secrets.BOT_USER_ACTION_TOKEN }}
+      - name: "Use Node.js 14.x"		
+        uses: actions/setup-node@v1		
+        with:
+          node-version: 14.x
+      - name: npm install, jtest		
+        run: |
+          yarn install
+          npm run test

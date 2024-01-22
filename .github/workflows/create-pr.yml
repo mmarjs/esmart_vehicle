@@ -1,0 +1,20 @@
+name: Create Pull Request
+on:
+  create:
+    branches:
+      - 'feature/*'
+      - 'bugfix/*'
+      - 'hotfix/*'
+
+jobs:
+  create-pr-job:
+    name: Create Pull Request
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v1
+        with:
+          submodules: true
+          token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+      - uses: ./.github/shared/actions/create-pr
+        env:
+          GITHUB_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
